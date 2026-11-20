@@ -9,7 +9,7 @@ Python skript, ktorý pri výskyte **búrok na území Slovenska** automaticky p
 ## Čo robí
 
 1. Stiahne aktuálne výstrahy zo Slovenska (MeteoAlarm / SHMÚ)
-2. Počúva Blitzortung WebSocket ~45 s a počíta údery bleskov nad územím SR
+2. Počúva Blitzortung WebSocket ~40–45 s a počíta údery bleskov nad územím SR
 3. Ak nájde aktívnu výstrahu **alebo** dostatok bleskov (≥5), vytvorí krátky bulletin
 4. Pošle ho do APRS-IS ako `BLN1` bulletin
 
@@ -20,17 +20,37 @@ SHMU oranžová búrky: Prešov | Blitzortung 12 úderov/SK
 Blitzortung 8 úderov/SK
 ```
 
-## Požiadavky
+## Spustenie na GitHub Actions (odporúčané)
 
-- Python 3.8+
-- Platný amatérsky callsign a APRS-IS passcode
-- Internetové pripojenie
+Projekt obsahuje workflow, ktorý beží **každých 15 minút** priamo na GitHube.
 
-```bash
-pip install -r requirements.txt
-```
+### 1. Nastav Secrets
 
-## Inštalácia a konfigurácia
+Choď do repozitára → **Settings → Secrets and variables → Actions → New repository secret**
+
+Pridaj tieto dva secrets:
+
+| Názov             | Hodnota                          |
+|-------------------|----------------------------------|
+| `APRS_CALLSIGN`   | tvoj callsign (napr. `OM8AKX`)   |
+| `APRS_PASSCODE`   | APRS-IS passcode                 |
+
+Passcode vygeneruješ tu: https://apps.magicbug.co.uk/passcode/
+
+### 2. Zapni Actions
+
+Ak Actions ešte nie sú povolené:
+- **Settings → Actions → General → Allow all actions**
+
+### 3. Manuálne spustenie (test)
+
+- Záložka **Actions** → **SK Storm Bulletin** → **Run workflow**
+
+Potom sa workflow spúšťa automaticky každých 15 minút.
+
+---
+
+## Lokálne spustenie
 
 ```bash
 git clone https://github.com/OM8AKX/aprs-sk-storm-bulletin.git
@@ -38,11 +58,11 @@ cd aprs-sk-storm-bulletin
 pip install -r requirements.txt
 
 export APRS_CALLSIGN="OM8AKX"
-export APRS_PASSCODE="12345"           # alebo nechaj prázdne – vygeneruje sa
-export APRS_SERVER="euro.aprs2.net"
+export APRS_PASSCODE="12345"
+python3 aprs_sk_storm_bulletin.py
 ```
 
-### Blitzortung nastavenia (voliteľné)
+### Blitzortung / MeteoAlarm nastavenia
 
 | Premenná                 | Predvolené | Popis                                      |
 |--------------------------|------------|--------------------------------------------|
@@ -52,24 +72,12 @@ export APRS_SERVER="euro.aprs2.net"
 | `BLITZ_MAX_AGE_SEC`      | 600        | Max. vek úderu v sekundách (10 min)        |
 | `USE_METEOALARM`         | 1          | Zapnúť/vypnúť MeteoAlarm                   |
 
-## Spustenie
+## Poznámky
 
-```bash
-python3 aprs_sk_storm_bulletin.py
-```
-
-Odporúčané cez **cron** každých 10–15 minút (Blitzortung počúvanie trvá ~45 s):
-
-```cron
-*/15 * * * * cd /cesta/k/skriptu && /usr/bin/python3 aprs_sk_storm_bulletin.py >> /var/log/aprs-storm.log 2>&1
-```
-
-## Poznámky k Blitzortung
-
-- Používa verejné WebSocket servery (`ws1`, `ws7`, `ws8` …) – rovnaké ako oficiálna mapa.
-- Filtruje údery podľa bounding boxu Slovenska.
-- Pri každom behu sa pripojí na ~45 sekúnd a počíta aktuálne údery.
-- Ak nie je dostupný žiadny server, skript pokračuje len s MeteoAlarm dátami.
+- GitHub Actions free tier stačí na beh každých 15 minút.
+- Blitzortung používa verejné WebSocket servery (rovnaké ako oficiálna mapa).
+- Pri každom behu sa pripojí na ~40 s a počíta aktuálne údery nad SK.
+- Ten istý bulletin sa neposiela častejšie ako raz za ~25–30 minút.
 
 ## Licencia
 
