@@ -1,0 +1,37 @@
+name: SK Storm Bulletin
+
+on:
+  schedule:
+    # Každých 15 minút
+    - cron: '*/15 * * * *'
+  workflow_dispatch:  # manuálne spustenie z GitHub UI
+
+jobs:
+  check-and-send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run storm bulletin
+        env:
+          APRS_CALLSIGN: ${{ secrets.APRS_CALLSIGN }}
+          APRS_PASSCODE: ${{ secrets.APRS_PASSCODE }}
+          APRS_SERVER: euro.aprs2.net
+          USE_METEOALARM: '1'
+          USE_BLITZORTUNG: '1'
+          BLITZ_LISTEN_SECONDS: '40'
+          BLITZ_MIN_STRIKES: '5'
+          MIN_RESEND_MINUTES: '25'
+        run: python3 aprs_sk_storm_bulletin.py
