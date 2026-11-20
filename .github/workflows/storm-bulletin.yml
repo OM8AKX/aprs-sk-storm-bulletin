@@ -2,9 +2,8 @@ name: SK Storm Bulletin
 
 on:
   schedule:
-    # Každých 15 minút
     - cron: '*/15 * * * *'
-  workflow_dispatch:  # manuálne spustenie z GitHub UI
+  workflow_dispatch:
 
 jobs:
   check-and-send:
@@ -31,7 +30,9 @@ jobs:
           APRS_SERVER: euro.aprs2.net
           USE_METEOALARM: '1'
           USE_BLITZORTUNG: '1'
+          USE_OPENMETEO: '1'
           BLITZ_LISTEN_SECONDS: '40'
           BLITZ_MIN_STRIKES: '5'
+          OPENMETEO_HOURS: '3'
           MIN_RESEND_MINUTES: '25'
         run: python3 aprs_sk_storm_bulletin.py
