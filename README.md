@@ -1,35 +1,32 @@
 # APRS SK Storm Bulletin
 
-Python skript, ktorý pri výskyte **búrok na území Slovenska** automaticky pošle bulletin do **APRS-IS**.
+Python skript, ktorý pri výskyte **búrok a krúp na území Slovenska** automaticky pošle bulletin do **APRS-IS**.
 
 **Zdroje dát:**
-1. **MeteoAlarm / SHMÚ** – oficiálne výstrahy
+1. **MeteoAlarm / SHMÚ** – oficiálne výstrahy (búrky + zmienky o krúpach)
 2. **Blitzortung** – reálne blesky (WebSocket)
-3. **Open-Meteo** – predpoveď búrok (weather codes 95–99, bez API kľúča)
+3. **Open-Meteo** – predpoveď búrok/krúp (kódy 95–99, bez API kľúča)
 
-## Čo robí
+## Detekcia krúp
 
-1. Stiahne výstrahy zo Slovenska (MeteoAlarm)
-2. Počúva Blitzortung ~40 s a počíta údery nad SK
-3. Overí predpoveď Open-Meteo na 7 bodoch (BA, ZA, KE, BB, PO, NR, PP)
-4. Ak nájde výstrahu **alebo** blesky **alebo** predpoveď búrok → pošle `BLN1` bulletin
+| Zdroj | Ako deteguje krúpy |
+|-------|--------------------|
+| MeteoAlarm | Kľúčové slová v texte (krúp, hail, hagel…) |
+| Open-Meteo | Weather code **96** (slight hail) a **99** (heavy hail) |
 
-Príklady:
+Príklady bulletinov:
 ```
-SHMU žltá búrky: Žilina, Poprad
-Blitz 12 úderov | OpenMeteo búrky: Košice,Prešov
-OpenMeteo búrky: Bratislava,Nitra
+SHMU žltá búrky+krúpy: Žilina, Poprad
+OpenMeteo krúpy: Košice,Prešov
+SHMU oranžová búrky: BA | Blitz 12 úderov | OpenMeteo krúpy: NR
 ```
 
-## Spustenie na GitHub Actions
+## GitHub Actions
 
-1. **Settings → Secrets and variables → Actions**
-   - `APRS_CALLSIGN` = tvoj callsign
-   - `APRS_PASSCODE` = passcode (https://apps.magicbug.co.uk/passcode/)
+1. Secrets: `APRS_CALLSIGN`, `APRS_PASSCODE`
+2. Actions → SK Storm Bulletin → Run workflow
 
-2. **Actions → SK Storm Bulletin → Run workflow** (test)
-
-Beží automaticky každých 15 minút.
+Beží každých 15 minút.
 
 ## Lokálne
 
@@ -40,16 +37,13 @@ export APRS_PASSCODE=12345
 python3 aprs_sk_storm_bulletin.py
 ```
 
-### Premenné
-
 | Premenná | Predvolené | Popis |
 |----------|------------|-------|
 | `USE_METEOALARM` | 1 | Oficiálne výstrahy |
 | `USE_BLITZORTUNG` | 1 | Blesky |
-| `USE_OPENMETEO` | 1 | Predpoveď Open-Meteo |
+| `USE_OPENMETEO` | 1 | Predpoveď + krúpy |
 | `BLITZ_MIN_STRIKES` | 5 | Prah úderov |
-| `OPENMETEO_HOURS` | 3 | Hodiny predpovede dopredu |
-| `MIN_RESEND_MINUTES` | 30 | Interval medzi rovnakými bulletinmi |
+| `OPENMETEO_HOURS` | 3 | Hodiny predpovede |
 
 ## Licencia
 
